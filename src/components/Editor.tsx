@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
@@ -9,17 +9,22 @@ import Typography from '@tiptap/extension-typography';
 import { useNoteStore } from '../store/useNoteStore';
 import { Toolbar } from './Toolbar';
 import { TagPicker } from './TagPicker';
+import { downloadMarkdown } from '../utils/exportMarkdown';
+
+type SaveStatus = 'saved' | 'saving';
 
 export function Editor() {
-  const { notes, activeNoteId, updateNote } = useNoteStore(s => ({
+  const { notes, activeNoteId, updateNote, togglePin } = useNoteStore(s => ({
     notes: s.notes,
     activeNoteId: s.activeNoteId,
     updateNote: s.updateNote,
+    togglePin: s.togglePin,
   }));
 
   const activeNote = notes.find(n => n.id === activeNoteId) ?? null;
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
 
   const editor = useEditor({
     extensions: [
@@ -29,21 +34,21 @@ export function Editor() {
       Highlight,
       Typography,
       Placeholder.configure({
-        placeholder: 'ここに書き始めましょう...\n/ でコマンド、** で太字',
+        placeholder: 'ここに書き始めましょう... (Markdown 記法対応)',
       }),
     ],
     content: '',
     editorProps: {
-      attributes: {
-        class: 'prose-editor focus:outline-none',
-      },
+      attributes: { class: 'prose-editor focus:outline-none' },
     },
     onUpdate: ({ editor }) => {
       if (!activeNote) return;
-      const json = JSON.stringify(editor.getJSON());
+      setSaveStatus('saving');
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(() => {
+        const json = JSON.stringify(editor.getJSON());
         updateNote(activeNote.id, { content: json });
+        setSaveStatus('saved');
       }, 300);
     },
   });
@@ -64,13 +69,13 @@ export function Editor() {
     } else {
       editor.commands.clearContent(false);
     }
+    setSaveStatus('saved');
   }, [editor, activeNote]);
 
   const handleTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (!activeNote) return;
       updateNote(activeNote.id, { title: e.target.value });
-      // Auto-resize
       e.target.style.height = 'auto';
       e.target.style.height = e.target.scrollHeight + 'px';
     },
@@ -79,50 +84,84 @@ export function Editor() {
 
   if (!activeNote) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-600">
+      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-600 select-none">
         <div className="text-5xl mb-4">📝</div>
         <p className="text-lg font-medium text-gray-500 dark:text-gray-500">ノートを選択または作成</p>
-        <p className="text-sm mt-1">サイドバーから + ボタンで新規作成</p>
+        <p className="text-sm mt-1 text-gray-400 dark:text-gray-600">サイドバーの + ボタンまたは</p>
+        <p className="text-sm mt-0.5">
+          <kbd className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700 font-mono">⌘N</kbd>
+          {' '}で新規作成
+        </p>
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
-      {editor && <Toolbar editor={editor} />}
+      {/* Toolbar */}
+      {editor && (
+        <Toolbar
+          editor={editor}
+          onExport={() => downloadMarkdown(activeNote.title, activeNote.content)}
+        />
+      )}
 
+      {/* Editor area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-8 py-6">
-          {/* Title */}
-          <textarea
-            ref={titleRef}
-            value={activeNote.title}
-            onChange={handleTitleChange}
-            placeholder="タイトル"
-            rows={1}
-            className="w-full text-3xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-700 bg-transparent border-none resize-none focus:outline-none mb-1 leading-tight overflow-hidden"
-            style={{ height: 'auto' }}
-            onInput={e => {
-              const el = e.currentTarget;
-              el.style.height = 'auto';
-              el.style.height = el.scrollHeight + 'px';
-            }}
-          />
+          {/* Title row */}
+          <div className="flex items-start gap-2 mb-1">
+            <textarea
+              ref={titleRef}
+              value={activeNote.title}
+              onChange={handleTitleChange}
+              placeholder="タイトル"
+              rows={1}
+              className="flex-1 text-3xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-700 bg-transparent border-none resize-none focus:outline-none leading-tight overflow-hidden"
+              style={{ height: 'auto' }}
+              onInput={e => {
+                const el = e.currentTarget;
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+              }}
+            />
+            {/* Pin button */}
+            <button
+              onClick={() => togglePin(activeNote.id)}
+              title={activeNote.pinned ? 'ピン留めを解除 (⌘P)' : 'ピン留め (⌘P)'}
+              className={`mt-1 p-1.5 rounded-lg transition-all shrink-0 text-base
+                ${activeNote.pinned
+                  ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'
+                  : 'text-gray-300 dark:text-gray-700 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+            >
+              📌
+            </button>
+          </div>
 
           {/* Tags */}
-          <div className="mb-5">
+          <div className="mb-4">
             <TagPicker note={activeNote} />
           </div>
 
-          {/* Meta */}
-          <div className="mb-4 text-xs text-gray-400 dark:text-gray-600">
-            {new Date(activeNote.updatedAt).toLocaleString('ja-JP', {
-              year: 'numeric', month: 'short', day: 'numeric',
-              hour: '2-digit', minute: '2-digit',
-            })} に更新
+          {/* Meta + Save status */}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-gray-400 dark:text-gray-600">
+              {new Date(activeNote.updatedAt).toLocaleString('ja-JP', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+              })} に更新
+            </p>
+            <span className={`text-xs transition-colors ${
+              saveStatus === 'saving'
+                ? 'text-amber-500 dark:text-amber-400'
+                : 'text-gray-400 dark:text-gray-600'
+            }`}>
+              {saveStatus === 'saving' ? '保存中…' : '保存済み ✓'}
+            </span>
           </div>
 
-          {/* Editor */}
+          {/* Editor content */}
           <EditorContent
             editor={editor}
             className="min-h-96 text-gray-800 dark:text-gray-200 text-base leading-relaxed [&_.ProseMirror]:min-h-96"

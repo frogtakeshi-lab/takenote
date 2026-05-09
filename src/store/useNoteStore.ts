@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import type { Note, Tag, Theme } from '../types';
+import type { Note, Tag, Theme, SortBy } from '../types';
 
 const TAG_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
@@ -13,13 +13,15 @@ interface NoteStore {
   tags: Tag[];
   activeNoteId: string | null;
   searchQuery: string;
-  filterTagId: string | null;
+  filterTagIds: string[];
+  sortBy: SortBy;
   theme: Theme;
 
   // Note actions
   createNote: () => void;
   updateNote: (id: string, patch: Partial<Pick<Note, 'title' | 'content' | 'tagIds'>>) => void;
   deleteNote: (id: string) => void;
+  togglePin: (id: string) => void;
   setActiveNote: (id: string | null) => void;
 
   // Tag actions
@@ -29,7 +31,9 @@ interface NoteStore {
 
   // Filter/search
   setSearchQuery: (q: string) => void;
-  setFilterTagId: (id: string | null) => void;
+  toggleFilterTag: (id: string) => void;
+  clearFilterTags: () => void;
+  setSortBy: (s: SortBy) => void;
 
   // Theme
   setTheme: (theme: Theme) => void;
@@ -45,7 +49,8 @@ export const useNoteStore = create<NoteStore>()(
       tags: [],
       activeNoteId: null,
       searchQuery: '',
-      filterTagId: null,
+      filterTagIds: [],
+      sortBy: 'updatedAt',
       theme: 'system',
 
       createNote: () => {
@@ -56,6 +61,7 @@ export const useNoteStore = create<NoteStore>()(
           title: '無題のノート',
           content: '',
           tagIds: [],
+          pinned: false,
           createdAt: now,
           updatedAt: now,
         };
@@ -80,6 +86,14 @@ export const useNoteStore = create<NoteStore>()(
         });
       },
 
+      togglePin: (id) => {
+        set(s => ({
+          notes: s.notes.map(n =>
+            n.id === id ? { ...n, pinned: !n.pinned } : n
+          ),
+        }));
+      },
+
       setActiveNote: (id) => set({ activeNoteId: id }),
 
       createTag: (name) => {
@@ -102,28 +116,49 @@ export const useNoteStore = create<NoteStore>()(
         set(s => ({
           tags: s.tags.filter(t => t.id !== id),
           notes: s.notes.map(n => ({ ...n, tagIds: n.tagIds.filter(tid => tid !== id) })),
-          filterTagId: s.filterTagId === id ? null : s.filterTagId,
+          filterTagIds: s.filterTagIds.filter(tid => tid !== id),
         }));
       },
 
       setSearchQuery: (q) => set({ searchQuery: q }),
-      setFilterTagId: (id) => set({ filterTagId: id }),
+
+      toggleFilterTag: (id) => {
+        set(s => ({
+          filterTagIds: s.filterTagIds.includes(id)
+            ? s.filterTagIds.filter(tid => tid !== id)
+            : [...s.filterTagIds, id],
+        }));
+      },
+
+      clearFilterTags: () => set({ filterTagIds: [] }),
+
+      setSortBy: (sortBy) => set({ sortBy }),
+
       setTheme: (theme) => set({ theme }),
 
       filteredNotes: () => {
-        const { notes, searchQuery, filterTagId } = get();
-        return notes
-          .filter(n => {
-            if (filterTagId && !n.tagIds.includes(filterTagId)) return false;
-            if (searchQuery) {
-              const q = searchQuery.toLowerCase();
-              const inTitle = n.title.toLowerCase().includes(q);
-              const inContent = n.content.toLowerCase().includes(q);
-              return inTitle || inContent;
-            }
-            return true;
-          })
-          .sort((a, b) => b.updatedAt - a.updatedAt);
+        const { notes, searchQuery, filterTagIds, sortBy } = get();
+
+        let result = notes.filter(n => {
+          if (filterTagIds.length > 0 && !filterTagIds.every(tid => n.tagIds.includes(tid))) return false;
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            return n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q);
+          }
+          return true;
+        });
+
+        result = [...result].sort((a, b) => {
+          // Pinned notes always first
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+
+          if (sortBy === 'title') return a.title.localeCompare(b.title, 'ja');
+          if (sortBy === 'createdAt') return b.createdAt - a.createdAt;
+          return b.updatedAt - a.updatedAt;
+        });
+
+        return result;
       },
     }),
     {
@@ -132,6 +167,7 @@ export const useNoteStore = create<NoteStore>()(
         notes: s.notes,
         tags: s.tags,
         theme: s.theme,
+        sortBy: s.sortBy,
       }),
     }
   )

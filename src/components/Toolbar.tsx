@@ -33,9 +33,10 @@ function Divider() {
 
 interface Props {
   editor: Editor;
+  onExport: () => void;
 }
 
-export function Toolbar({ editor }: Props) {
+export function Toolbar({ editor, onExport }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       {/* Headings */}
@@ -165,6 +166,16 @@ export function Toolbar({ editor }: Props) {
         title="やり直し (Ctrl+Y)"
       >
         <span className="text-xs">↪</span>
+      </ToolbarButton>
+
+      <Divider />
+
+      {/* Export */}
+      <ToolbarButton
+        onClick={onExport}
+        title="Markdownでエクスポート (⌘⇧E)"
+      >
+        <span className="text-xs">↓md</span>
       </ToolbarButton>
     </div>
   );

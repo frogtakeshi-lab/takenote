@@ -20,7 +20,7 @@ function formatDate(ts: number) {
 function getPreview(content: string): string {
   if (!content) return '';
   try {
-    const doc = JSON.parse(content);
+    const doc = JSON.parse(content) as { type?: string; text?: string; content?: unknown[] };
     const texts: string[] = [];
     function walk(node: { type?: string; text?: string; content?: unknown[] }) {
       if (node.type === 'text' && node.text) texts.push(node.text);
@@ -52,12 +52,17 @@ export function NoteItem({ note, active }: Props) {
         }
       `}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className={`text-sm font-medium truncate leading-snug
-          ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-800 dark:text-gray-200'}
-        `}>
-          {note.title || '無題のノート'}
-        </p>
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="flex items-center gap-1 min-w-0">
+          {note.pinned && (
+            <span className="text-xs text-indigo-400 dark:text-indigo-500 shrink-0">📌</span>
+          )}
+          <p className={`text-sm font-medium truncate leading-snug
+            ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-800 dark:text-gray-200'}
+          `}>
+            {note.title || '無題のノート'}
+          </p>
+        </div>
         <span className="text-xs text-gray-400 dark:text-gray-600 shrink-0 mt-0.5">
           {formatDate(note.updatedAt)}
         </span>

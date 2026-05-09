@@ -9,8 +9,10 @@ export interface Note {
   title: string;
   content: string; // TipTap JSON string
   tagIds: string[];
+  pinned?: boolean;
   createdAt: number;
   updatedAt: number;
 }
 
 export type Theme = 'light' | 'dark' | 'system';
+export type SortBy = 'updatedAt' | 'createdAt' | 'title';
