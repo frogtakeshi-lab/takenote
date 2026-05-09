@@ -1,0 +1,179 @@
+import { useNoteStore } from '../store/useNoteStore';
+import { NoteItem } from './NoteItem';
+import { TagBadge } from './TagBadge';
+import { useRef, useState } from 'react';
+
+export function Sidebar() {
+  const {
+    notes,
+    tags,
+    activeNoteId,
+    searchQuery,
+    filterTagId,
+    theme,
+    createNote,
+    deleteNote,
+    setSearchQuery,
+    setFilterTagId,
+    setTheme,
+    filteredNotes,
+  } = useNoteStore(s => ({
+    notes: s.notes,
+    tags: s.tags,
+    activeNoteId: s.activeNoteId,
+    searchQuery: s.searchQuery,
+    filterTagId: s.filterTagId,
+    theme: s.theme,
+    createNote: s.createNote,
+    deleteNote: s.deleteNote,
+    setSearchQuery: s.setSearchQuery,
+    setFilterTagId: s.setFilterTagId,
+    setTheme: s.setTheme,
+    filteredNotes: s.filteredNotes,
+  }));
+
+  const visible = filteredNotes();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const themeIcons: Record<string, string> = { light: '☀️', dark: '🌙', system: '🖥️' };
+  const themeOrder: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
+  const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % 3];
+
+  return (
+    <aside className="w-64 h-full flex flex-col bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shrink-0">
+      {/* Header */}
+      <div className="px-3 pt-3 pb-2 flex items-center justify-between">
+        <span className="text-base font-bold text-gray-900 dark:text-gray-100 select-none">
+          📝 TakeNote
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setTheme(nextTheme)}
+            title={`テーマ: ${theme} → ${nextTheme}`}
+            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
+          >
+            {themeIcons[theme]}
+          </button>
+          <button
+            onClick={createNote}
+            title="新しいノート"
+            className="w-7 h-7 flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors text-lg leading-none"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">🔍</span>
+          <input
+            ref={searchRef}
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="検索..."
+            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Tag filters */}
+      {tags.length > 0 && (
+        <div className="px-3 pb-2">
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={() => setFilterTagId(null)}
+              className={`text-xs px-2 py-0.5 rounded-full transition-colors
+                ${filterTagId === null
+                  ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-medium'
+                  : 'text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                }`}
+            >
+              すべて
+            </button>
+            {tags.map(tag => (
+              <TagBadge
+                key={tag.id}
+                tag={tag}
+                active={filterTagId === tag.id}
+                onClick={() => setFilterTagId(filterTagId === tag.id ? null : tag.id)}
+                small
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Note count */}
+      <div className="px-3 pb-1">
+        <p className="text-xs text-gray-400 dark:text-gray-600">
+          {visible.length} / {notes.length} ノート
+        </p>
+      </div>
+
+      {/* Note list */}
+      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+        {visible.length === 0 ? (
+          <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-600">
+            {searchQuery || filterTagId ? '一致するノートがありません' : 'ノートがありません'}
+          </div>
+        ) : (
+          visible.map(note => (
+            <div
+              key={note.id}
+              className="relative group/item"
+              onMouseLeave={() => setConfirmDeleteId(null)}
+            >
+              <NoteItem note={note} active={note.id === activeNoteId} />
+              {/* Delete button */}
+              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                {confirmDeleteId === note.id ? (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => { deleteNote(note.id); setConfirmDeleteId(null); }}
+                      className="text-xs px-1.5 py-0.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      削除
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="text-xs px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={e => { e.stopPropagation(); setConfirmDeleteId(note.id); }}
+                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors text-xs rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                    title="ノートを削除"
+                  >
+                    🗑
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800">
+        <p className="text-xs text-gray-400 dark:text-gray-600 text-center">
+          データはローカルに保存されます
+        </p>
+      </div>
+    </aside>
+  );
+}
