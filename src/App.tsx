@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Sidebar } from './components/Sidebar';
@@ -7,13 +7,52 @@ import { Editor } from './components/Editor';
 function App() {
   useTheme();
   const searchRef = useRef<HTMLInputElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
+
   useKeyboardShortcuts({ searchRef });
 
   return (
-    <div className="flex h-screen w-screen bg-white dark:bg-gray-900 overflow-hidden">
-      <Sidebar searchRef={searchRef} />
-      <main className="flex-1 flex overflow-hidden">
-        <Editor />
+    <div className="flex h-[100dvh] w-screen bg-white dark:bg-gray-900 overflow-hidden">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 sm:hidden"
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar — always visible on desktop, drawer on mobile */}
+      <div className={`
+        fixed sm:relative inset-y-0 left-0 z-30 sm:z-auto
+        transform transition-transform duration-300 ease-in-out sm:transform-none
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'}
+      `}>
+        <Sidebar searchRef={searchRef} onClose={closeSidebar} />
+      </div>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header bar */}
+        <div className="sm:hidden flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+          <button
+            onClick={openSidebar}
+            aria-label="サイドバーを開く"
+            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            </svg>
+          </button>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">TakeNote</span>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          <Editor onOpenSidebar={openSidebar} />
+        </div>
       </main>
     </div>
   );

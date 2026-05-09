@@ -13,7 +13,11 @@ import { downloadMarkdown } from '../utils/exportMarkdown';
 
 type SaveStatus = 'saved' | 'saving';
 
-export function Editor() {
+interface Props {
+  onOpenSidebar?: () => void;
+}
+
+export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
   const { notes, activeNoteId, updateNote, togglePin } = useNoteStore(s => ({
     notes: s.notes,
     activeNoteId: s.activeNoteId,
@@ -84,20 +88,20 @@ export function Editor() {
 
   if (!activeNote) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-600 select-none">
+      <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-600 select-none px-4">
         <div className="text-5xl mb-4">📝</div>
-        <p className="text-lg font-medium text-gray-500 dark:text-gray-500">ノートを選択または作成</p>
-        <p className="text-sm mt-1 text-gray-400 dark:text-gray-600">サイドバーの + ボタンまたは</p>
-        <p className="text-sm mt-0.5">
-          <kbd className="px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700 font-mono">⌘N</kbd>
-          {' '}で新規作成
+        <p className="text-lg font-medium text-gray-500 dark:text-gray-500 text-center">ノートを選択または作成</p>
+        <p className="text-sm mt-2 text-gray-400 dark:text-gray-600 text-center">
+          左上のメニューまたは
+          <kbd className="mx-1 px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700 font-mono">⌘N</kbd>
+          で新規作成
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
       {/* Toolbar */}
       {editor && (
         <Toolbar
@@ -107,8 +111,8 @@ export function Editor() {
       )}
 
       {/* Editor area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="max-w-3xl mx-auto px-4 sm:px-8 py-4 sm:py-6 pb-safe">
           {/* Title row */}
           <div className="flex items-start gap-2 mb-1">
             <textarea
@@ -117,7 +121,7 @@ export function Editor() {
               onChange={handleTitleChange}
               placeholder="タイトル"
               rows={1}
-              className="flex-1 text-3xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-700 bg-transparent border-none resize-none focus:outline-none leading-tight overflow-hidden"
+              className="flex-1 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-700 bg-transparent border-none resize-none focus:outline-none leading-tight overflow-hidden"
               style={{ height: 'auto' }}
               onInput={e => {
                 const el = e.currentTarget;
