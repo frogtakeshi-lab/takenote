@@ -45,7 +45,7 @@ export function Toolbar({ editor, onExport }: Props) {
     <div
       role="toolbar"
       aria-label="書式設定ツールバー"
-      className="flex items-center gap-0.5 px-3 py-2 border-b border-paper-300/60 dark:border-paper-700/60 bg-paper-50 dark:bg-paper-900/40 overflow-x-auto toolbar-scroll shrink-0 scrollbar-none"
+      className="flex items-center gap-0.5 px-3 py-2 border-t sm:border-t-0 sm:border-b border-paper-300/60 dark:border-paper-700/60 bg-paper-50 dark:bg-paper-900 sm:dark:bg-paper-900/40 overflow-x-auto toolbar-scroll shrink-0 scrollbar-none pb-[calc(env(safe-area-inset-bottom)+0.5rem)] sm:pb-2 shadow-paper sm:shadow-none"
     >
       {/* Headings */}
       <ToolbarButton

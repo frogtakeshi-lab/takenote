@@ -14,10 +14,9 @@ const SORT_ORDER: SortBy[] = ['updatedAt', 'createdAt', 'title'];
 
 interface Props {
   searchRef: React.RefObject<HTMLInputElement | null>;
-  onClose?: () => void;
 }
 
-export function Sidebar({ searchRef, onClose }: Props) {
+export function Sidebar({ searchRef }: Props) {
   const {
     notes,
     tags,
@@ -65,16 +64,14 @@ export function Sidebar({ searchRef, onClose }: Props) {
 
   function handleCreateNote() {
     createNote();
-    onClose?.();
   }
 
   function handleSelectNote(id: string) {
     setActiveNote(id);
-    onClose?.();
   }
 
   return (
-    <aside className="w-72 sm:w-64 h-full flex flex-col bg-paper-50 dark:bg-paper-900 border-r border-paper-300/60 dark:border-paper-700/60">
+    <aside className="w-full sm:w-64 h-full flex flex-col bg-paper-50 dark:bg-paper-900 sm:border-r border-paper-300/60 dark:border-paper-700/60">
       {/* Header */}
       <div className="px-3 pt-3 pb-2 flex items-center justify-between">
         <span className="text-base font-bold text-paper-700 dark:text-paper-100 select-none">
@@ -90,12 +87,13 @@ export function Sidebar({ searchRef, onClose }: Props) {
           >
             {themeIcons[theme]}
           </button>
+          {/* デスクトップでは + ボタン、モバイルでは FAB を使う */}
           <button
             type="button"
             onClick={handleCreateNote}
             title="新しいノート (⌘N)"
             aria-label="新しいノートを作成"
-            className="min-w-11 min-h-11 sm:min-w-9 sm:min-h-9 flex items-center justify-center rounded-lg bg-accent-500 hover:bg-accent-600 text-paper-50 transition-colors text-xl leading-none active:scale-95 shadow-paper"
+            className="hidden sm:flex min-w-9 min-h-9 items-center justify-center rounded-lg bg-accent-500 hover:bg-accent-600 text-paper-50 transition-colors text-xl leading-none active:scale-95 shadow-paper"
           >
             +
           </button>
