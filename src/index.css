@@ -14,7 +14,8 @@ body {
 
 #root {
   width: 100%;
-  height: 100dvh;
+  height: 100vh;   /* fallback for older browsers */
+  height: 100dvh;  /* modern: excludes mobile browser chrome */
   display: flex;
 }
 
