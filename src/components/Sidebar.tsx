@@ -3,6 +3,9 @@ import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import { NoteItem } from './NoteItem';
 import { TagBadge } from './TagBadge';
+import { useToast } from './Toast';
+import { haptics } from '../utils/haptics';
+import { EmptyState } from './EmptyState';
 import type { SortBy } from '../types';
 
 const SORT_LABELS: Record<SortBy, string> = {
@@ -14,9 +17,10 @@ const SORT_ORDER: SortBy[] = ['updatedAt', 'createdAt', 'title'];
 
 interface Props {
   searchRef: React.RefObject<HTMLInputElement | null>;
+  onOpenSettings?: () => void;
 }
 
-export function Sidebar({ searchRef }: Props) {
+export function Sidebar({ searchRef, onOpenSettings }: Props) {
   const {
     notes,
     tags,
@@ -27,6 +31,8 @@ export function Sidebar({ searchRef }: Props) {
     theme,
     createNote,
     deleteNote,
+    restoreNote,
+    commitDelete,
     setSearchQuery,
     toggleFilterTag,
     clearFilterTags,
@@ -44,6 +50,8 @@ export function Sidebar({ searchRef }: Props) {
     theme: s.theme,
     createNote: s.createNote,
     deleteNote: s.deleteNote,
+    restoreNote: s.restoreNote,
+    commitDelete: s.commitDelete,
     setSearchQuery: s.setSearchQuery,
     toggleFilterTag: s.toggleFilterTag,
     clearFilterTags: s.clearFilterTags,
@@ -55,6 +63,23 @@ export function Sidebar({ searchRef }: Props) {
 
   const visible = filteredNotes();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const toast = useToast();
+
+  function handleDelete(id: string) {
+    haptics.delete();
+    let restored = false;
+    const removed = deleteNote(id);
+    setConfirmDeleteId(null);
+    if (!removed) return;
+    toast.show(`「${removed.title || '無題のノート'}」を削除しました`, {
+      action: {
+        label: '元に戻す',
+        onClick: () => { restored = true; restoreNote(removed); haptics.success(); },
+      },
+      duration: 5000,
+    });
+    window.setTimeout(() => { if (!restored) commitDelete(removed); }, 5200);
+  }
 
   const themeIcons: Record<string, string> = { light: '☀️', dark: '🌙', system: '🖥️' };
   const themeLabels: Record<string, string> = { light: 'ライト', dark: 'ダーク', system: 'システム' };
@@ -87,6 +112,20 @@ export function Sidebar({ searchRef }: Props) {
           >
             {themeIcons[theme]}
           </button>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              title="設定"
+              aria-label="設定を開く"
+              className="min-w-11 min-h-11 sm:min-w-9 sm:min-h-9 flex items-center justify-center rounded-lg hover:bg-paper-200 dark:hover:bg-paper-700/40 transition-colors text-paper-600 dark:text-paper-300 active:scale-95"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.3 3.3l1.4 1.4M13.3 13.3l1.4 1.4M3.3 14.7l1.4-1.4M13.3 4.7l1.4-1.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
           {/* デスクトップでは + ボタン、モバイルでは FAB を使う */}
           <button
             type="button"
@@ -185,9 +224,9 @@ export function Sidebar({ searchRef }: Props) {
       {/* Note list */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5" role="list">
         {visible.length === 0 ? (
-          <div className="py-8 text-center text-sm text-paper-500 dark:text-paper-400">
-            {searchQuery || filterTagIds.length > 0 ? '一致するノートがありません' : 'ノートがありません'}
-          </div>
+          searchQuery || filterTagIds.length > 0
+            ? <EmptyState variant="no-results" query={searchQuery} />
+            : <EmptyState variant="no-note" />
         ) : (
           visible.map(note => (
             <div
@@ -207,7 +246,7 @@ export function Sidebar({ searchRef }: Props) {
                   <div className="flex gap-1">
                     <button
                       type="button"
-                      onClick={() => { deleteNote(note.id); setConfirmDeleteId(null); }}
+                      onClick={() => handleDelete(note.id)}
                       className="text-xs px-3 h-9 min-w-11 bg-danger text-paper-50 rounded-lg hover:opacity-90 transition-opacity active:scale-95"
                       aria-label={`「${note.title || '無題のノート'}」を削除`}
                     >

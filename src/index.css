@@ -69,6 +69,19 @@ body {
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 
+/* === フォントサイズスケール (設定画面で切替) === */
+:root[data-font-scale="sm"]   { font-size: 14px; }
+:root[data-font-scale="base"] { font-size: 16px; }
+:root[data-font-scale="lg"]   { font-size: 18px; }
+:root[data-font-scale="xl"]   { font-size: 20px; }
+
+/* === 紙テクスチャ (設定画面で ON/OFF) === */
+.paper-texture body {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-blend-mode: multiply;
+}
+
 /* === A11y: focus-visible リング === */
 @layer base {
   :where(button, a, input, textarea, [tabindex]):focus-visible {

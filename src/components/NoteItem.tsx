@@ -1,27 +1,20 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useLongPress } from '../hooks/useLongPress';
 import { ContextMenu, type ContextMenuItem } from './ContextMenu';
+import { useToast } from './Toast';
 import type { Note } from '../types';
 import { TagBadge } from './TagBadge';
+import { formatDateSmart } from '../utils/formatDate';
+import { haptics } from '../utils/haptics';
 
 interface Props {
   note: Note;
   active: boolean;
   onSelect?: (id: string) => void;
-}
-
-function formatDate(ts: number) {
-  const d = new Date(ts);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  if (diff < 60_000) return 'たった今';
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}分前`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}時間前`;
-  return d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
 }
 
 function getPreview(content: string): string {
@@ -40,15 +33,18 @@ function getPreview(content: string): string {
   }
 }
 
-export function NoteItem({ note, active, onSelect }: Props) {
-  const { setActiveNote, tags, deleteNote, togglePin } = useNoteStore(useShallow(s => ({
+function NoteItemImpl({ note, active, onSelect }: Props) {
+  const { setActiveNote, tags, deleteNote, restoreNote, commitDelete, togglePin } = useNoteStore(useShallow(s => ({
     setActiveNote: s.setActiveNote,
     tags: s.tags,
     deleteNote: s.deleteNote,
+    restoreNote: s.restoreNote,
+    commitDelete: s.commitDelete,
     togglePin: s.togglePin,
   })));
   const isMobile = useMediaQuery('(max-width: 640px)');
   const [menuOpen, setMenuOpen] = useState(false);
+  const toast = useToast();
 
   const x = useMotionValue(0);
   const bgOpacity = useTransform(x, [-160, -40, 0], [1, 0.4, 0]);
@@ -65,8 +61,25 @@ export function NoteItem({ note, active, onSelect }: Props) {
   }
 
   function performDelete() {
-    if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
-    deleteNote(note.id);
+    haptics.delete();
+    let restored = false;
+    const removed = deleteNote(note.id);
+    if (!removed) return;
+    toast.show(`「${removed.title || '無題のノート'}」を削除しました`, {
+      action: {
+        label: '元に戻す',
+        onClick: () => {
+          restored = true;
+          restoreNote(removed);
+          haptics.success();
+        },
+      },
+      duration: 5000,
+    });
+    // 5 秒後 (Toast の duration と同期) に確定
+    window.setTimeout(() => {
+      if (!restored) commitDelete(removed);
+    }, 5200);
   }
 
   const menuItems: ContextMenuItem[] = [
@@ -74,7 +87,7 @@ export function NoteItem({ note, active, onSelect }: Props) {
       key: 'pin',
       label: note.pinned ? 'ピン留めを解除' : 'ピン留めする',
       icon: '📌',
-      onClick: () => togglePin(note.id),
+      onClick: () => { togglePin(note.id); haptics.pin(); },
     },
     {
       key: 'delete',
@@ -111,7 +124,7 @@ export function NoteItem({ note, active, onSelect }: Props) {
           </p>
         </div>
         <span className="text-xs text-paper-500 dark:text-paper-400 shrink-0 mt-0.5">
-          {formatDate(note.updatedAt)}
+          {formatDateSmart(note.updatedAt)}
         </span>
       </div>
       {preview && (
@@ -172,3 +185,9 @@ export function NoteItem({ note, active, onSelect }: Props) {
     </>
   );
 }
+
+export const NoteItem = memo(NoteItemImpl, (prev, next) =>
+  prev.note === next.note &&
+  prev.active === next.active &&
+  prev.onSelect === next.onSelect
+);

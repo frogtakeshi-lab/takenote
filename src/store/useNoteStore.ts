@@ -29,7 +29,9 @@ interface NoteStore {
   createNote: () => string;
   createNoteFromShare: (title: string, bodyText: string) => string;
   updateNote: (id: string, patch: Partial<Pick<Note, 'title' | 'content' | 'tagIds'>>) => void;
-  deleteNote: (id: string) => void;
+  deleteNote: (id: string) => Note | null;
+  restoreNote: (note: Note) => void;
+  commitDelete: (note: Note) => void;
   togglePin: (id: string) => void;
   setActiveNote: (id: string | null) => void;
 
@@ -114,14 +116,9 @@ export const useNoteStore = create<NoteStore>()(
       },
 
       deleteNote: (id) => {
-        const target = get().notes.find(n => n.id === id);
-        // 削除されるノートに含まれていた画像を IndexedDB から GC
-        if (target) {
-          const refIds = extractImageRefIds(target.content);
-          if (refIds.length > 0) {
-            void deleteImages(refIds);
-          }
-        }
+        const target = get().notes.find(n => n.id === id) ?? null;
+        // 注意: Undo 復元の可能性があるため画像 GC はここでは行わない
+        // (恒久削除のタイミングは UI 側 Toast の expire 時)
         set(s => {
           const remaining = s.notes.filter(n => n.id !== id);
           const nextActive = s.activeNoteId === id
@@ -129,6 +126,23 @@ export const useNoteStore = create<NoteStore>()(
             : s.activeNoteId;
           return { notes: remaining, activeNoteId: nextActive };
         });
+        return target;
+      },
+
+      restoreNote: (note) => {
+        set(s => {
+          if (s.notes.find(n => n.id === note.id)) return s;
+          return { notes: [note, ...s.notes] };
+        });
+      },
+
+      commitDelete: (note) => {
+        // 削除確定: ノートがリストに復元されていなければ画像 GC
+        if (get().notes.find(n => n.id === note.id)) return;
+        const refIds = extractImageRefIds(note.content);
+        if (refIds.length > 0) {
+          void deleteImages(refIds);
+        }
       },
 
       togglePin: (id) => {

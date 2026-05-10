@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { useSpeechRecognition } from './useSpeechRecognition';
+import { usePreferences } from '../settings/usePreferences';
 
 interface Props {
   editor: Editor;
   lang?: string;
 }
 
-export function VoiceButton({ editor, lang = 'ja-JP' }: Props) {
+export function VoiceButton({ editor, lang }: Props) {
   const [showHint, setShowHint] = useState(false);
+  const prefLang = usePreferences(s => s.voiceLang);
+  const effectiveLang = lang ?? prefLang;
 
   const { state, toggle, supported } = useSpeechRecognition({
-    lang,
+    lang: effectiveLang,
     onFinal: (text) => {
       editor.chain().focus().insertContent(text).run();
     },
