@@ -4,8 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Note, Tag, Theme, SortBy } from '../types';
 
 const TAG_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
-  '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6',
+  '#a06614', // amber
+  '#8e5a3a', // mocha
+  '#9b6a4f', // taupe
+  '#b8513a', // terracotta
+  '#7a8a4f', // sage
+  '#5e7d6e', // pine
+  '#6b8a9b', // dusty blue
+  '#7c6da6', // muted lavender
+  '#a25869', // dusty rose
 ];
 
 interface NoteStore {

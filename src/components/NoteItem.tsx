@@ -46,35 +46,35 @@ export function NoteItem({ note, active }: Props) {
   return (
     <div
       onClick={() => setActiveNote(note.id)}
-      className={`px-3 py-2.5 rounded-lg cursor-pointer transition-colors group
+      className={`px-4 py-3 min-h-14 sm:min-h-12 rounded-xl cursor-pointer transition-colors group
         ${active
-          ? 'bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800/50 border border-transparent'
+          ? 'bg-accent-100/60 dark:bg-accent-700/20 border border-accent-400/40 dark:border-accent-600/40'
+          : 'hover:bg-paper-200/60 dark:hover:bg-paper-700/30 border border-transparent'
         }
       `}
     >
       <div className="flex items-start justify-between gap-1.5">
         <div className="flex items-center gap-1 min-w-0">
           {note.pinned && (
-            <span className="text-xs text-indigo-400 dark:text-indigo-500 shrink-0">📌</span>
+            <span className="text-xs text-accent-500 dark:text-accent-400 shrink-0" aria-label="ピン留め済み">📌</span>
           )}
           <p className={`text-sm font-medium truncate leading-snug
-            ${active ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-800 dark:text-gray-200'}
+            ${active ? 'text-accent-700 dark:text-accent-200' : 'text-paper-700 dark:text-paper-100'}
           `}>
             {note.title || '無題のノート'}
           </p>
         </div>
-        <span className="text-xs text-gray-400 dark:text-gray-600 shrink-0 mt-0.5">
+        <span className="text-xs text-paper-500 dark:text-paper-400 shrink-0 mt-0.5">
           {formatDate(note.updatedAt)}
         </span>
       </div>
       {preview && (
-        <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5 truncate leading-snug">
+        <p className="text-xs text-paper-500 dark:text-paper-400 mt-1 truncate leading-snug">
           {preview}
         </p>
       )}
       {noteTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1.5">
+        <div className="flex flex-wrap gap-1 mt-2">
           {noteTags.slice(0, 3).map(tag => (
             <TagBadge key={tag.id} tag={tag} small />
           ))}

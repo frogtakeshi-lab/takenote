@@ -58,6 +58,7 @@ export function Sidebar({ searchRef, onClose }: Props) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const themeIcons: Record<string, string> = { light: '☀️', dark: '🌙', system: '🖥️' };
+  const themeLabels: Record<string, string> = { light: 'ライト', dark: 'ダーク', system: 'システム' };
   const themeOrder: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
   const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % 3];
   const nextSort = SORT_ORDER[(SORT_ORDER.indexOf(sortBy) + 1) % SORT_ORDER.length];
@@ -73,24 +74,28 @@ export function Sidebar({ searchRef, onClose }: Props) {
   }
 
   return (
-    <aside className="w-72 sm:w-64 h-full flex flex-col bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+    <aside className="w-72 sm:w-64 h-full flex flex-col bg-paper-50 dark:bg-paper-900 border-r border-paper-300/60 dark:border-paper-700/60">
       {/* Header */}
       <div className="px-3 pt-3 pb-2 flex items-center justify-between">
-        <span className="text-base font-bold text-gray-900 dark:text-gray-100 select-none">
+        <span className="text-base font-bold text-paper-700 dark:text-paper-100 select-none">
           📝 TakeNote
         </span>
         <div className="flex items-center gap-1">
           <button
+            type="button"
             onClick={() => setTheme(nextTheme)}
-            title={`テーマ: ${theme} → ${nextTheme}`}
-            className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
+            title={`テーマ: ${themeLabels[theme]} → ${themeLabels[nextTheme]}`}
+            aria-label={`テーマを切り替え (現在: ${themeLabels[theme]})`}
+            className="min-w-11 min-h-11 sm:min-w-9 sm:min-h-9 flex items-center justify-center rounded-lg hover:bg-paper-200 dark:hover:bg-paper-700/40 transition-colors text-base active:scale-95"
           >
             {themeIcons[theme]}
           </button>
           <button
+            type="button"
             onClick={handleCreateNote}
             title="新しいノート (⌘N)"
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors text-lg leading-none"
+            aria-label="新しいノートを作成"
+            className="min-w-11 min-h-11 sm:min-w-9 sm:min-h-9 flex items-center justify-center rounded-lg bg-accent-500 hover:bg-accent-600 text-paper-50 transition-colors text-xl leading-none active:scale-95 shadow-paper"
           >
             +
           </button>
@@ -100,19 +105,28 @@ export function Sidebar({ searchRef, onClose }: Props) {
       {/* Search */}
       <div className="px-3 pb-2">
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm select-none">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-paper-500 dark:text-paper-400 text-sm select-none pointer-events-none" aria-hidden="true">🔍</span>
           <input
             ref={searchRef}
-            type="text"
+            type="search"
+            inputMode="search"
+            enterKeyHint="search"
+            autoCapitalize="off"
+            autoCorrect="off"
+            autoComplete="off"
+            spellCheck={false}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="検索... (⌘K)"
-            className="w-full pl-8 pr-3 py-2 text-sm rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+            aria-label="ノートを検索"
+            className="w-full pl-9 pr-10 h-11 sm:h-10 text-sm rounded-xl bg-paper-100 dark:bg-paper-800 border border-paper-300/60 dark:border-paper-700/60 text-paper-700 dark:text-paper-100 placeholder-paper-500 dark:placeholder-paper-400 focus:outline-none focus:ring-2 focus:ring-accent-400 transition"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 w-5 h-5 flex items-center justify-center"
+              aria-label="検索をクリア"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-paper-500 hover:text-paper-700 dark:hover:text-paper-100 w-9 h-9 flex items-center justify-center rounded-full hover:bg-paper-200 dark:hover:bg-paper-700/40 transition"
             >
               ×
             </button>
@@ -123,13 +137,15 @@ export function Sidebar({ searchRef, onClose }: Props) {
       {/* Tag filters */}
       {tags.length > 0 && (
         <div className="px-3 pb-2">
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             <button
+              type="button"
               onClick={clearFilterTags}
-              className={`text-xs px-2 py-1 rounded-full transition-colors
+              aria-pressed={filterTagIds.length === 0}
+              className={`text-xs px-3 py-1.5 min-h-8 rounded-full transition-colors
                 ${filterTagIds.length === 0
-                  ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-medium'
-                  : 'text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800'
+                  ? 'bg-accent-100 dark:bg-accent-700/30 text-accent-700 dark:text-accent-200 font-medium'
+                  : 'text-paper-500 dark:text-paper-400 hover:bg-paper-200 dark:hover:bg-paper-700/40'
                 }`}
             >
               すべて
@@ -145,7 +161,7 @@ export function Sidebar({ searchRef, onClose }: Props) {
             ))}
           </div>
           {filterTagIds.length > 1 && (
-            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">
+            <p className="text-xs text-paper-500 dark:text-paper-400 mt-1">
               {filterTagIds.length}個のタグで絞り込み中 (AND条件)
             </p>
           )}
@@ -154,22 +170,24 @@ export function Sidebar({ searchRef, onClose }: Props) {
 
       {/* Sort + Note count row */}
       <div className="px-3 pb-1 flex items-center justify-between">
-        <p className="text-xs text-gray-400 dark:text-gray-600">
+        <p className="text-xs text-paper-500 dark:text-paper-400">
           {visible.length} / {notes.length} ノート
         </p>
         <button
+          type="button"
           onClick={() => setSortBy(nextSort)}
           title={`ソート: ${SORT_LABELS[sortBy]} → ${SORT_LABELS[nextSort]}`}
-          className="text-xs text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors px-1.5 py-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+          aria-label={`並び替え (現在: ${SORT_LABELS[sortBy]})`}
+          className="text-xs text-paper-500 dark:text-paper-400 hover:text-accent-600 dark:hover:text-accent-200 transition-colors px-2 py-1.5 rounded-md hover:bg-accent-50 dark:hover:bg-accent-700/20"
         >
           ↕ {SORT_LABELS[sortBy]}
         </button>
       </div>
 
       {/* Note list */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5" role="list">
         {visible.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-600">
+          <div className="py-8 text-center text-sm text-paper-500 dark:text-paper-400">
             {searchQuery || filterTagIds.length > 0 ? '一致するノートがありません' : 'ノートがありません'}
           </div>
         ) : (
@@ -177,33 +195,39 @@ export function Sidebar({ searchRef, onClose }: Props) {
             <div
               key={note.id}
               className="relative group/item"
+              role="listitem"
               onMouseLeave={() => setConfirmDeleteId(null)}
             >
               <div onClick={() => handleSelectNote(note.id)}>
                 <NoteItem note={note} active={note.id === activeNoteId} />
               </div>
               {/* Delete button */}
-              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
+              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 transition-opacity">
                 {confirmDeleteId === note.id ? (
                   <div className="flex gap-1">
                     <button
+                      type="button"
                       onClick={() => { deleteNote(note.id); setConfirmDeleteId(null); }}
-                      className="text-xs px-1.5 py-0.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      className="text-xs px-3 h-9 min-w-11 bg-danger text-paper-50 rounded-lg hover:opacity-90 transition-opacity active:scale-95"
+                      aria-label={`「${note.title || '無題のノート'}」を削除`}
                     >
                       削除
                     </button>
                     <button
+                      type="button"
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-xs px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      className="text-xs px-3 h-9 min-w-11 bg-paper-200 dark:bg-paper-700 text-paper-600 dark:text-paper-200 rounded-lg hover:bg-paper-300 dark:hover:bg-paper-600 transition-colors active:scale-95"
+                      aria-label="削除をキャンセル"
                     >
                       ×
                     </button>
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={e => { e.stopPropagation(); setConfirmDeleteId(note.id); }}
-                    className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors text-xs rounded hover:bg-red-50 dark:hover:bg-red-950/30"
-                    title="ノートを削除"
+                    className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center text-paper-500 hover:text-danger transition-colors text-sm rounded-lg hover:bg-danger/10 active:scale-95"
+                    aria-label={`「${note.title || '無題のノート'}」を削除`}
                   >
                     🗑
                   </button>
@@ -215,7 +239,7 @@ export function Sidebar({ searchRef, onClose }: Props) {
       </div>
 
       {/* Footer: Keyboard shortcuts (desktop only) */}
-      <div className="hidden sm:block px-3 py-2 border-t border-gray-200 dark:border-gray-800">
+      <div className="hidden sm:block px-3 py-2 border-t border-paper-300/60 dark:border-paper-700/60">
         <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
           {[
             ['⌘N', '新規ノート'],
@@ -224,10 +248,10 @@ export function Sidebar({ searchRef, onClose }: Props) {
             ['⌘⇧E', 'エクスポート'],
           ].map(([key, label]) => (
             <div key={key} className="flex items-center gap-1">
-              <kbd className="text-xs px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700 font-mono text-gray-500 dark:text-gray-500 shrink-0">
+              <kbd className="text-xs px-1 py-0.5 bg-paper-200 dark:bg-paper-800 rounded border border-paper-300 dark:border-paper-700 font-mono text-paper-600 dark:text-paper-300 shrink-0">
                 {key}
               </kbd>
-              <span className="text-xs text-gray-400 dark:text-gray-600 truncate">{label}</span>
+              <span className="text-xs text-paper-500 dark:text-paper-400 truncate">{label}</span>
             </div>
           ))}
         </div>

@@ -91,12 +91,12 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
 
   if (!activeNote) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-600 select-none px-4">
-        <div className="text-5xl mb-4">📝</div>
-        <p className="text-lg font-medium text-gray-500 dark:text-gray-500 text-center">ノートを選択または作成</p>
-        <p className="text-sm mt-2 text-gray-400 dark:text-gray-600 text-center">
+      <div className="h-full flex flex-col items-center justify-center bg-paper-100 dark:bg-paper-800 text-paper-500 dark:text-paper-400 select-none px-4">
+        <div className="text-5xl mb-4" aria-hidden="true">📝</div>
+        <p className="text-lg font-medium text-paper-600 dark:text-paper-300 text-center">ノートを選択または作成</p>
+        <p className="text-sm mt-2 text-paper-500 dark:text-paper-400 text-center">
           左上のメニューまたは
-          <kbd className="mx-1 px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-700 font-mono">⌘N</kbd>
+          <kbd className="mx-1 px-1.5 py-0.5 text-xs bg-paper-200 dark:bg-paper-700 rounded border border-paper-300 dark:border-paper-600 font-mono">⌘N</kbd>
           で新規作成
         </p>
       </div>
@@ -104,7 +104,7 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="h-full flex flex-col bg-paper-100 dark:bg-paper-800 overflow-hidden">
       {/* Toolbar */}
       {editor && (
         <Toolbar
@@ -124,7 +124,12 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
               onChange={handleTitleChange}
               placeholder="タイトル"
               rows={1}
-              className="flex-1 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-700 bg-transparent border-none resize-none focus:outline-none leading-tight overflow-hidden"
+              enterKeyHint="next"
+              autoCapitalize="sentences"
+              autoCorrect="on"
+              spellCheck={true}
+              aria-label="ノートタイトル"
+              className="flex-1 text-2xl sm:text-3xl font-bold text-paper-700 dark:text-paper-100 placeholder-paper-400 dark:placeholder-paper-500 bg-transparent border-none resize-none focus:outline-none leading-tight overflow-hidden"
               style={{ height: 'auto' }}
               onInput={e => {
                 const el = e.currentTarget;
@@ -134,12 +139,15 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
             />
             {/* Pin button */}
             <button
+              type="button"
               onClick={() => togglePin(activeNote.id)}
               title={activeNote.pinned ? 'ピン留めを解除 (⌘P)' : 'ピン留め (⌘P)'}
-              className={`mt-1 p-1.5 rounded-lg transition-all shrink-0 text-base
+              aria-label={activeNote.pinned ? 'ピン留めを解除' : 'ピン留めする'}
+              aria-pressed={activeNote.pinned ?? false}
+              className={`mt-1 min-w-11 min-h-11 sm:min-w-10 sm:min-h-10 flex items-center justify-center rounded-xl transition-all shrink-0 text-lg active:scale-95
                 ${activeNote.pinned
-                  ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'
-                  : 'text-gray-300 dark:text-gray-700 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'text-accent-600 bg-accent-100 dark:bg-accent-700/30 dark:text-accent-200 hover:bg-accent-200 dark:hover:bg-accent-700/40'
+                  : 'text-paper-400 dark:text-paper-500 hover:text-paper-600 dark:hover:text-paper-200 hover:bg-paper-200 dark:hover:bg-paper-700/40'
                 }`}
             >
               📌
@@ -153,17 +161,21 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
 
           {/* Meta + Save status */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs text-gray-400 dark:text-gray-600">
+            <p className="text-xs text-paper-500 dark:text-paper-400">
               {new Date(activeNote.updatedAt).toLocaleString('ja-JP', {
                 year: 'numeric', month: 'short', day: 'numeric',
                 hour: '2-digit', minute: '2-digit',
               })} に更新
             </p>
-            <span className={`text-xs transition-colors ${
-              saveStatus === 'saving'
-                ? 'text-amber-500 dark:text-amber-400'
-                : 'text-gray-400 dark:text-gray-600'
-            }`}>
+            <span
+              role="status"
+              aria-live="polite"
+              className={`text-xs transition-colors ${
+                saveStatus === 'saving'
+                  ? 'text-warning'
+                  : 'text-paper-500 dark:text-paper-400'
+              }`}
+            >
               {saveStatus === 'saving' ? '保存中…' : '保存済み ✓'}
             </span>
           </div>
@@ -171,7 +183,7 @@ export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
           {/* Editor content */}
           <EditorContent
             editor={editor}
-            className="min-h-96 text-gray-800 dark:text-gray-200 text-base leading-relaxed [&_.ProseMirror]:min-h-96"
+            className="min-h-96 text-paper-700 dark:text-paper-100 text-base leading-relaxed [&_.ProseMirror]:min-h-96"
           />
         </div>
       </div>

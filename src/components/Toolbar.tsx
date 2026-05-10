@@ -5,21 +5,25 @@ interface ToolbarButtonProps {
   active?: boolean;
   disabled?: boolean;
   title: string;
+  ariaLabel?: string;
   children: React.ReactNode;
 }
 
-function ToolbarButton({ onClick, active, disabled, title, children }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, active, disabled, title, ariaLabel, children }: ToolbarButtonProps) {
   return (
     <button
+      type="button"
       onMouseDown={e => { e.preventDefault(); onClick(); }}
       disabled={disabled}
       title={title}
-      className={`w-7 h-7 flex items-center justify-center rounded text-sm transition-colors
+      aria-label={ariaLabel ?? title}
+      aria-pressed={active}
+      className={`min-w-11 min-h-11 sm:min-w-9 sm:min-h-9 px-2 flex items-center justify-center rounded-lg text-sm transition-colors
         ${active
-          ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'bg-accent-100 dark:bg-accent-700/30 text-accent-700 dark:text-accent-200'
+          : 'text-paper-600 dark:text-paper-300 hover:bg-paper-200 dark:hover:bg-paper-700/40'
         }
-        ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+        ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
       `}
     >
       {children}
@@ -28,7 +32,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }: ToolbarBu
 }
 
 function Divider() {
-  return <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-0.5" />;
+  return <div className="w-px h-6 bg-paper-300 dark:bg-paper-700 mx-0.5" aria-hidden="true" />;
 }
 
 interface Props {
@@ -38,7 +42,11 @@ interface Props {
 
 export function Toolbar({ editor, onExport }: Props) {
   return (
-    <div className="flex items-center gap-0.5 px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-x-auto toolbar-scroll shrink-0 scrollbar-none">
+    <div
+      role="toolbar"
+      aria-label="書式設定ツールバー"
+      className="flex items-center gap-0.5 px-3 py-2 border-b border-paper-300/60 dark:border-paper-700/60 bg-paper-50 dark:bg-paper-900/40 overflow-x-auto toolbar-scroll shrink-0 scrollbar-none"
+    >
       {/* Headings */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -89,7 +97,7 @@ export function Toolbar({ editor, onExport }: Props) {
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleCode().run()}
         active={editor.isActive('code')}
-        title="コード"
+        title="インラインコード"
       >
         <span className="font-mono text-xs">{`<>`}</span>
       </ToolbarButton>

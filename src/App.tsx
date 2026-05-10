@@ -15,11 +15,11 @@ function App() {
   useKeyboardShortcuts({ searchRef });
 
   return (
-    <div className="flex h-full w-screen bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-full w-screen bg-paper-100 dark:bg-paper-800 overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-20 sm:hidden"
+          className="fixed inset-0 bg-paper-900/50 z-20 sm:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />
@@ -37,17 +37,18 @@ function App() {
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header bar */}
-        <div className="sm:hidden flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+        <div className="sm:hidden flex items-center gap-2 px-3 py-2 border-b border-paper-300/60 dark:border-paper-700/60 bg-paper-50 dark:bg-paper-900 shrink-0">
           <button
+            type="button"
             onClick={openSidebar}
             aria-label="サイドバーを開く"
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400"
+            className="min-w-11 min-h-11 flex items-center justify-center rounded-lg hover:bg-paper-200 dark:hover:bg-paper-700/40 transition-colors text-paper-600 dark:text-paper-300 active:scale-95"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
             </svg>
           </button>
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">TakeNote</span>
+          <span className="text-sm font-semibold text-paper-700 dark:text-paper-100">TakeNote</span>
         </div>
 
         <div className="flex-1 overflow-hidden">

@@ -2,14 +2,59 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* === 紙風カラーパレット (paper / sepia) === */
+  --color-paper-50:  #faf6ec;
+  --color-paper-100: #f6efe2;  /* light 背景 */
+  --color-paper-200: #ede2cc;  /* light サブ面 */
+  --color-paper-300: #d9c8a8;  /* 罫線 light */
+  --color-paper-400: #b89e76;  /* placeholder light (AA on paper-100) */
+  --color-paper-500: #8a7250;  /* 二次テキスト */
+  --color-paper-600: #5e4b35;  /* 本文 light */
+  --color-paper-700: #3e3122;  /* 見出し */
+  --color-paper-800: #2a221b;  /* dark 背景 */
+  --color-paper-900: #1c1610;  /* dark 最暗 */
+
+  /* === アクセント (warm amber) === */
+  --color-accent-50:  #fff5e6;
+  --color-accent-100: #ffe6bf;
+  --color-accent-200: #fbd28a;
+  --color-accent-400: #e6a44a;  /* primary accent */
+  --color-accent-500: #c9842a;  /* hover */
+  --color-accent-600: #a06614;  /* active / pin */
+  --color-accent-700: #7a4d10;
+
+  /* === 状態色 (warm tone) === */
+  --color-success: #6f8b3d;
+  --color-warning: #d68f3a;
+  --color-danger:  #b8513a;
+  --color-info:    #6b8a9b;
+
+  /* === 書体 === */
+  --font-sans: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "M PLUS Rounded 1c", "Hiragino Sans", "ヒラギノ角ゴ ProN", system-ui, -apple-system, sans-serif;
+  --font-serif: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  /* === シャドウ (温かみのある柔らかい影) === */
+  --shadow-paper: 0 1px 2px rgb(94 75 53 / 0.08), 0 4px 12px rgb(94 75 53 / 0.06);
+  --shadow-paper-lg: 0 4px 12px rgb(94 75 53 / 0.10), 0 12px 32px rgb(94 75 53 / 0.08);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  background: var(--color-paper-100);
+  color: var(--color-paper-700);
+}
+
+.dark body {
+  background: var(--color-paper-800);
+  color: #ece2cf;
 }
 
 #root {
@@ -24,9 +69,27 @@ body {
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 
-/* Toolbar scroll on small screens */
+/* === A11y: focus-visible リング === */
+@layer base {
+  :where(button, a, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* === A11y: reduced-motion 対応 === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === Toolbar / モバイル調整 === */
 @media (max-width: 640px) {
-  /* Prevent toolbar from wrapping too much */
   .toolbar-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -43,7 +106,7 @@ body {
   .ProseMirror h3 { font-size: 1.125rem; }
 }
 
-/* TipTap task list */
+/* === TipTap task list === */
 ul[data-type="taskList"] {
   list-style: none;
   padding: 0;
@@ -64,7 +127,7 @@ ul[data-type="taskList"] li > label input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
   cursor: pointer;
-  accent-color: #6366f1;
+  accent-color: var(--color-accent-500);
 }
 
 ul[data-type="taskList"] li > div {
@@ -77,45 +140,81 @@ ul[data-type="taskList"] li[data-checked="true"] > div p {
   opacity: 0.5;
 }
 
-/* Editor placeholder */
+/* === Editor placeholder === */
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #9ca3af;
+  color: var(--color-paper-400);
   pointer-events: none;
   height: 0;
 }
 
 .dark .ProseMirror p.is-editor-empty:first-child::before {
-  color: #4b5563;
+  color: #6e5e44;
 }
 
 .ProseMirror:focus {
   outline: none;
 }
 
-/* Prose styles */
+/* === Prose styles (warm paper theme) === */
 .ProseMirror h1 { font-size: 1.875rem; font-weight: 700; margin: 1rem 0 0.5rem; line-height: 1.2; }
 .ProseMirror h2 { font-size: 1.5rem; font-weight: 600; margin: 0.875rem 0 0.5rem; line-height: 1.3; }
 .ProseMirror h3 { font-size: 1.25rem; font-weight: 600; margin: 0.75rem 0 0.375rem; line-height: 1.4; }
-.ProseMirror p { margin: 0.25rem 0; line-height: 1.6; }
+.ProseMirror p { margin: 0.25rem 0; line-height: 1.7; }
 .ProseMirror ul, .ProseMirror ol { padding-left: 1.5rem; margin: 0.25rem 0; }
 .ProseMirror li { margin: 0.125rem 0; }
-.ProseMirror blockquote { border-left: 3px solid #6366f1; padding-left: 1rem; margin: 0.5rem 0; opacity: 0.75; }
-.ProseMirror code { font-family: ui-monospace, monospace; font-size: 0.875em; background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
-.dark .ProseMirror code { background: #1f2937; }
-.ProseMirror pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
-.ProseMirror pre code { background: none; padding: 0; }
-.ProseMirror hr { border: none; border-top: 1px solid #e5e7eb; margin: 1rem 0; }
-.dark .ProseMirror hr { border-top-color: #374151; }
-.ProseMirror mark { background: #fef08a; border-radius: 2px; padding: 0 2px; }
-.dark .ProseMirror mark { background: #713f12; }
+.ProseMirror blockquote {
+  border-left: 3px solid var(--color-accent-400);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  opacity: 0.85;
+  color: var(--color-paper-600);
+}
+.dark .ProseMirror blockquote { color: #c9bba0; }
+.ProseMirror code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--color-paper-200);
+  color: var(--color-accent-700);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+.dark .ProseMirror code {
+  background: #3a2e22;
+  color: var(--color-accent-200);
+}
+.ProseMirror pre {
+  background: #2a221b;
+  color: #f6efe2;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.ProseMirror pre code { background: none; padding: 0; color: inherit; }
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-paper-300);
+  margin: 1rem 0;
+}
+.dark .ProseMirror hr { border-top-color: #4a3a28; }
+.ProseMirror mark {
+  background: var(--color-accent-100);
+  color: var(--color-paper-700);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+.dark .ProseMirror mark {
+  background: #6b4a18;
+  color: #f6efe2;
+}
 
-/* Scrollbar */
+/* === Scrollbar (warm) === */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-.dark ::-webkit-scrollbar-thumb { background: #374151; }
+::-webkit-scrollbar-thumb { background: var(--color-paper-300); border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb { background: #4a3a28; }
 
 /* Hide scrollbar for toolbar */
 .scrollbar-none { scrollbar-width: none; }

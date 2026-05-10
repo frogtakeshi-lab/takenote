@@ -63,19 +63,32 @@ export function TagPicker({ note }: Props) {
           <TagBadge key={tag.id} tag={tag} onRemove={() => removeTag(tag.id)} />
         ))}
         <button
+          type="button"
           onClick={() => setOpen(!open)}
-          className="text-xs text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors px-1.5 py-0.5 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-dashed border-gray-300 dark:border-gray-700 hover:border-indigo-400"
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="タグを追加"
+          className="text-sm text-paper-500 dark:text-paper-400 hover:text-accent-600 dark:hover:text-accent-200 transition-colors px-3 py-1 min-h-9 rounded-full hover:bg-accent-50 dark:hover:bg-accent-700/20 border border-dashed border-paper-300 dark:border-paper-600 hover:border-accent-400 active:scale-95"
         >
           + タグ
         </button>
       </div>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1.5">
-          <div className="px-2 pb-1.5">
+        <div
+          role="dialog"
+          aria-label="タグを選択または作成"
+          className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-2rem)] bg-paper-50 dark:bg-paper-900 border border-paper-300/60 dark:border-paper-700/60 rounded-xl shadow-paper-lg z-50 py-2"
+        >
+          <div className="px-2 pb-2">
             <input
               ref={inputRef}
               type="text"
+              inputMode="text"
+              enterKeyHint="done"
+              autoCapitalize="off"
+              autoCorrect="off"
+              autoComplete="off"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => {
@@ -83,36 +96,42 @@ export function TagPicker({ note }: Props) {
                 if (e.key === 'Escape') setOpen(false);
               }}
               placeholder="タグ名を入力..."
-              className="w-full px-2 py-1 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              aria-label="タグ名"
+              className="w-full px-3 h-10 text-sm bg-paper-100 dark:bg-paper-800 border border-paper-300/60 dark:border-paper-700/60 rounded-lg text-paper-700 dark:text-paper-100 placeholder-paper-400 dark:placeholder-paper-500 focus:outline-none focus:ring-2 focus:ring-accent-400"
             />
           </div>
 
           {input && !tags.find(t => t.name.toLowerCase() === input.toLowerCase()) && (
             <button
+              type="button"
               onClick={handleCreateTag}
-              className="w-full text-left px-3 py-1.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+              className="w-full text-left px-3 py-2 min-h-11 text-sm text-accent-700 dark:text-accent-200 hover:bg-accent-50 dark:hover:bg-accent-700/20 transition-colors"
             >
               「{input}」を作成
             </button>
           )}
 
           {filtered.length > 0 && (
-            <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+            <div className="border-t border-paper-200 dark:border-paper-700 mt-1 pt-1">
               {filtered.map(tag => (
                 <div
                   key={tag.id}
-                  className="flex items-center justify-between px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700/50 group/tag"
+                  className="flex items-center justify-between px-2 py-1.5 hover:bg-paper-100 dark:hover:bg-paper-800/60 group/tag"
                 >
                   <button
+                    type="button"
                     onClick={() => { addTag(tag.id); setInput(''); }}
-                    className="flex-1 text-left"
+                    className="flex-1 text-left min-h-9 px-1 active:scale-95"
+                    aria-label={`タグ「${tag.name}」を追加`}
                   >
                     <TagBadge tag={tag} small />
                   </button>
                   <button
+                    type="button"
                     onClick={() => deleteTag(tag.id)}
                     title="タグを削除"
-                    className="opacity-0 group-hover/tag:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all ml-1"
+                    aria-label={`タグ「${tag.name}」を完全に削除`}
+                    className="opacity-0 group-hover/tag:opacity-100 focus:opacity-100 w-9 h-9 flex items-center justify-center text-paper-500 hover:text-danger transition-all ml-1 rounded-md hover:bg-danger/10"
                   >
                     🗑
                   </button>
@@ -122,7 +141,7 @@ export function TagPicker({ note }: Props) {
           )}
 
           {filtered.length === 0 && !input && availableTags.length === 0 && (
-            <p className="px-3 py-2 text-xs text-gray-400 dark:text-gray-600">
+            <p className="px-3 py-2 text-xs text-paper-500 dark:text-paper-400">
               タグを入力して作成
             </p>
           )}
