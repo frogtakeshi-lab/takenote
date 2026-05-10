@@ -196,11 +196,13 @@ export function Sidebar({ searchRef }: Props) {
               role="listitem"
               onMouseLeave={() => setConfirmDeleteId(null)}
             >
-              <div onClick={() => handleSelectNote(note.id)}>
-                <NoteItem note={note} active={note.id === activeNoteId} />
-              </div>
-              {/* Delete button */}
-              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 transition-opacity">
+              <NoteItem
+                note={note}
+                active={note.id === activeNoteId}
+                onSelect={handleSelectNote}
+              />
+              {/* デスクトップのみ: ホバーで削除ボタン (モバイルはスワイプ・長押し) */}
+              <div className="hidden sm:block absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 transition-opacity">
                 {confirmDeleteId === note.id ? (
                   <div className="flex gap-1">
                     <button
@@ -224,7 +226,7 @@ export function Sidebar({ searchRef }: Props) {
                   <button
                     type="button"
                     onClick={e => { e.stopPropagation(); setConfirmDeleteId(note.id); }}
-                    className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center text-paper-500 hover:text-danger transition-colors text-sm rounded-lg hover:bg-danger/10 active:scale-95"
+                    className="min-w-9 min-h-9 flex items-center justify-center text-paper-500 hover:text-danger transition-colors text-sm rounded-lg hover:bg-danger/10 active:scale-95"
                     aria-label={`「${note.title || '無題のノート'}」を削除`}
                   >
                     🗑

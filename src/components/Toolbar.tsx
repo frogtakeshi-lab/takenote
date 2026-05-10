@@ -1,4 +1,6 @@
 import type { Editor } from '@tiptap/react';
+import { ImageButton } from '../features/image/ImageButton';
+import { VoiceButton } from '../features/voice/VoiceButton';
 
 interface ToolbarButtonProps {
   onClick: () => void;
@@ -133,6 +135,14 @@ export function Toolbar({ editor, onExport }: Props) {
       >
         <span className="text-xs">☑</span>
       </ToolbarButton>
+
+      <Divider />
+
+      {/* Image / Camera */}
+      <ImageButton editor={editor} />
+
+      {/* Voice */}
+      <VoiceButton editor={editor} />
 
       <Divider />
 

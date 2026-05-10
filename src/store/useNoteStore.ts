@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { Note, Tag, Theme, SortBy } from '../types';
+import { extractImageRefIds, deleteImages } from '../features/image/imageStore';
 
 const TAG_COLORS = [
   '#a06614', // amber
@@ -25,7 +26,8 @@ interface NoteStore {
   theme: Theme;
 
   // Note actions
-  createNote: () => void;
+  createNote: () => string;
+  createNoteFromShare: (title: string, bodyText: string) => string;
   updateNote: (id: string, patch: Partial<Pick<Note, 'title' | 'content' | 'tagIds'>>) => void;
   deleteNote: (id: string) => void;
   togglePin: (id: string) => void;
@@ -73,6 +75,34 @@ export const useNoteStore = create<NoteStore>()(
           updatedAt: now,
         };
         set(s => ({ notes: [note, ...s.notes], activeNoteId: id }));
+        return id;
+      },
+
+      createNoteFromShare: (title, bodyText) => {
+        const id = uuidv4();
+        const now = Date.now();
+        // 共有テキストを段落に分けて TipTap doc に
+        const paragraphs = bodyText.split(/\n{2,}/).filter(Boolean);
+        const doc = {
+          type: 'doc',
+          content: paragraphs.length === 0
+            ? [{ type: 'paragraph' }]
+            : paragraphs.map(p => ({
+                type: 'paragraph',
+                content: [{ type: 'text', text: p }],
+              })),
+        };
+        const note: Note = {
+          id,
+          title: title || '共有メモ',
+          content: JSON.stringify(doc),
+          tagIds: [],
+          pinned: false,
+          createdAt: now,
+          updatedAt: now,
+        };
+        set(s => ({ notes: [note, ...s.notes], activeNoteId: id }));
+        return id;
       },
 
       updateNote: (id, patch) => {
@@ -84,6 +114,14 @@ export const useNoteStore = create<NoteStore>()(
       },
 
       deleteNote: (id) => {
+        const target = get().notes.find(n => n.id === id);
+        // 削除されるノートに含まれていた画像を IndexedDB から GC
+        if (target) {
+          const refIds = extractImageRefIds(target.content);
+          if (refIds.length > 0) {
+            void deleteImages(refIds);
+          }
+        }
         set(s => {
           const remaining = s.notes.filter(n => n.id !== id);
           const nextActive = s.activeNoteId === id

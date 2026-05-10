@@ -95,6 +95,15 @@ function nodeToMarkdown(node: TipTapNode, indent = 0, index = 0): string {
     case 'horizontalRule':
       return '---\n\n';
 
+    case 'image': {
+      const alt = (node.attrs?.alt as string) ?? '画像';
+      const src = (node.attrs?.src as string) ?? '';
+      const refId = (node.attrs?.refId as string) ?? '';
+      // refId 参照型はアプリ外で解決できないので、参照 URL を残す
+      const url = src || (refId ? `image:${refId}` : '');
+      return `![${alt}](${url})\n\n`;
+    }
+
     default:
       return '';
   }

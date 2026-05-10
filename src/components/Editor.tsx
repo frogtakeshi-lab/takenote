@@ -13,6 +13,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Toolbar } from './Toolbar';
 import { TagPicker } from './TagPicker';
 import { downloadMarkdown } from '../utils/exportMarkdown';
+import { StoredImageExtension } from '../features/image/storedImageExtension';
 
 type SaveStatus = 'saved' | 'saving';
 
@@ -38,6 +39,7 @@ export function Editor() {
     TaskItem.configure({ nested: true }),
     Highlight,
     Typography,
+    StoredImageExtension.configure({ inline: false, allowBase64: true }),
     Placeholder.configure({
       placeholder: 'ここに書き始めましょう... (Markdown 記法対応)',
     }),
