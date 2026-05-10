@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import type { Note } from '../types';
 import { TagBadge } from './TagBadge';
@@ -34,10 +35,10 @@ function getPreview(content: string): string {
 }
 
 export function NoteItem({ note, active }: Props) {
-  const { setActiveNote, tags } = useNoteStore(s => ({
+  const { setActiveNote, tags } = useNoteStore(useShallow(s => ({
     setActiveNote: s.setActiveNote,
     tags: s.tags,
-  }));
+  })));
 
   const noteTags = tags.filter(t => note.tagIds.includes(t.id));
   const preview = getPreview(note.content);
