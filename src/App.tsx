@@ -15,7 +15,7 @@ function App() {
   useKeyboardShortcuts({ searchRef });
 
   return (
-    <div className="flex h-[100dvh] w-screen bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-full w-screen bg-white dark:bg-gray-900 overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
