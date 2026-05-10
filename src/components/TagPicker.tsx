@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import { TagBadge } from './TagBadge';
 import type { Note } from '../types';
@@ -8,12 +9,12 @@ interface Props {
 }
 
 export function TagPicker({ note }: Props) {
-  const { tags, createTag, updateNote, deleteTag } = useNoteStore(s => ({
+  const { tags, createTag, updateNote, deleteTag } = useNoteStore(useShallow(s => ({
     tags: s.tags,
     createTag: s.createTag,
     updateNote: s.updateNote,
     deleteTag: s.deleteTag,
-  }));
+  })));
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');

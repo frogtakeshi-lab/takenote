@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import { NoteItem } from './NoteItem';
 import { TagBadge } from './TagBadge';
@@ -34,7 +35,7 @@ export function Sidebar({ searchRef, onClose }: Props) {
     setTheme,
     setActiveNote,
     filteredNotes,
-  } = useNoteStore(s => ({
+  } = useNoteStore(useShallow(s => ({
     notes: s.notes,
     tags: s.tags,
     activeNoteId: s.activeNoteId,
@@ -51,7 +52,7 @@ export function Sidebar({ searchRef, onClose }: Props) {
     setTheme: s.setTheme,
     setActiveNote: s.setActiveNote,
     filteredNotes: s.filteredNotes,
-  }));
+  })));
 
   const visible = filteredNotes();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);

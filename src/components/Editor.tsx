@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TaskList from '@tiptap/extension-task-list';
@@ -6,6 +6,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import Highlight from '@tiptap/extension-highlight';
 import Typography from '@tiptap/extension-typography';
+import { useShallow } from 'zustand/shallow';
 import { useNoteStore } from '../store/useNoteStore';
 import { Toolbar } from './Toolbar';
 import { TagPicker } from './TagPicker';
@@ -18,29 +19,31 @@ interface Props {
 }
 
 export function Editor({ onOpenSidebar: _onOpenSidebar }: Props) {
-  const { notes, activeNoteId, updateNote, togglePin } = useNoteStore(s => ({
+  const { notes, activeNoteId, updateNote, togglePin } = useNoteStore(useShallow(s => ({
     notes: s.notes,
     activeNoteId: s.activeNoteId,
     updateNote: s.updateNote,
     togglePin: s.togglePin,
-  }));
+  })));
 
   const activeNote = notes.find(n => n.id === activeNoteId) ?? null;
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
 
+  const extensions = useMemo(() => [
+    StarterKit,
+    TaskList,
+    TaskItem.configure({ nested: true }),
+    Highlight,
+    Typography,
+    Placeholder.configure({
+      placeholder: 'ここに書き始めましょう... (Markdown 記法対応)',
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight,
-      Typography,
-      Placeholder.configure({
-        placeholder: 'ここに書き始めましょう... (Markdown 記法対応)',
-      }),
-    ],
+    extensions,
     content: '',
     editorProps: {
       attributes: { class: 'prose-editor focus:outline-none' },
